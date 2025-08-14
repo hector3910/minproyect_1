@@ -60,7 +60,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'minproyect_1';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Welcome to your Jupyter Book" href="intro.html" />
+    <link rel="prev" title="Miniproyecto #1" href="intro.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   </head>
@@ -168,7 +168,7 @@
         <ul class="nav bd-sidenav bd-sidenav__home-link">
             <li class="toctree-l1">
                 <a class="reference internal" href="intro.html">
-                    Welcome to your Jupyter Book
+                    Miniproyecto #1
                 </a>
             </li>
         </ul>
@@ -388,7 +388,7 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modelo-k-nn">2. Modelo K-nn</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modelo-de-clasificacion-binaria">2.1 Modelo de clasificación binaria</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#busqueda-del-mejor-k">2.1.1 Búsqueda del mejor K</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#busqueda-del-mejor-k">2.1.1 Búsqueda del mejor <code class="docutils literal notranslate"><span class="pre">K</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#entrenamiento-del-modelo-con-el-mejor-k-matriz-de-confusion-y-metricas-precision-recall-y-f1-score">2.1.2 Entrenamiento del modelo con el mejor K, matriz de confusión y métricas precision, recall y f1-score</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#curva-roc-y-auc">2.1.3 Curva ROC y AUC</a></li>
 </ul>
@@ -1297,6 +1297,7 @@ GDP: 0 outliers detectados
 </div>
 </div>
 <p>Como vemos, hay bastantes outliers, esto más que nada se debe a que, al ser registros de notas de diferentes alumnos, hay bastantes que se destacan por encima del resto, por lo que pueden ser marcados como outliers.</p>
+<p>Para el este análisis, decidimos no tratar estos valores, ya que todos tienen información importante para determinar si un estudiante va a abandonar la universidad o no.</p>
 </section>
 </section>
 <section id="matriz-de-correlacion">
@@ -1330,7 +1331,7 @@ GDP: 0 outliers detectados
 <ul class="simple">
 <li><p>Nos brindó el hecho de que <strong>no hay datos faltantes</strong>, lo cual evita que hagamos una imputación innecesaria de datos.</p></li>
 <li><p>A su vez pudimos confirmar que variables como las notas conseguidas en los 2 semestres, <code class="docutils literal notranslate"><span class="pre">Curricular</span> <span class="pre">units</span> <span class="pre">1st</span> <span class="pre">sem</span> <span class="pre">(grade)</span></code> y <code class="docutils literal notranslate"><span class="pre">Curricular</span> <span class="pre">units</span> <span class="pre">2</span> <span class="pre">sem</span> <span class="pre">(grade)</span></code>, tienen una alta relación con el hecho de que un estudiante abandone o no la universidad.</p></li>
-<li><p>Los <strong>outliers</strong>, aunque son muchos, pueden ser tratados con el fin de mejorar el rendimiento del modelo.</p></li>
+<li><p>Los <strong>outliers</strong>, aunque se detectaron muchos, todos sus registros son importantes para la clasificación que estamos evaluando y los consideramos no erróneos.</p></li>
 </ul>
 <p>Luego de realizar este análisis exploratorio, podemos empezar a implementar tanto el modelo de clasificación, como el modelo de regresión, para predecir si un estudiante abandonará la universidad o no, y su promedio, respectivamente.</p>
 </section>
@@ -1394,9 +1395,7 @@ Name: count, dtype: int64
 <p>Dado que todo fue separado correctamente, procedemos a importar las librerias necesarias para el modelo K-nn:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">StratifiedKFold</span>  
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_val_score</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">train_test_split</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.neighbors</span><span class="w"> </span><span class="kn">import</span> <span class="n">KNeighborsClassifier</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">precision_score</span>
@@ -1406,22 +1405,24 @@ Name: count, dtype: int64
 </div>
 </div>
 <section id="busqueda-del-mejor-k">
-<h4>2.1.1 Búsqueda del mejor K<a class="headerlink" href="#busqueda-del-mejor-k" title="Link to this heading">#</a></h4>
-<p>Primero que todo, queremos encontrar el número de vecinos óptimo para encontrar el modelo de mejor rendimiento, para esto, primero dividimos el conjunto de datos con la función <code class="docutils literal notranslate"><span class="pre">train_test_split</span></code>, dejando un conjunto de test para la evaluación del modelo, esto con el fin de que la selección del mejor parámetro k no interfiera en el resultado del entrenamiento. Luego, mediante validación cruzada manual, dividimos nuevamente el conjunto de entrenamiento y entrenamos los modelos con cada número de k vecinos, desde el 1 hasta el 20, y luego guardamos en una lista los scores conseguidos por accuracy en el entrenamiento y la validación, y los scores de precision, recall y f1-score.</p>
+<h4>2.1.1 Búsqueda del mejor <code class="docutils literal notranslate"><span class="pre">K</span></code><a class="headerlink" href="#busqueda-del-mejor-k" title="Link to this heading">#</a></h4>
+<p>Primero que todo, queremos encontrar el número de vecinos óptimo para encontrar el modelo de mejor rendimiento, para esto, primero dividimos el conjunto de datos con la función <code class="docutils literal notranslate"><span class="pre">train_test_split</span></code>, dejando un conjunto de test para la evaluación del modelo, esto con el fin de que la selección del mejor parámetro <code class="docutils literal notranslate"><span class="pre">k</span></code> no interfiera en el resultado del entrenamiento. Luego, mediante validación cruzada manual, dividimos nuevamente el conjunto de entrenamiento y entrenamos los modelos con cada número de <code class="docutils literal notranslate"><span class="pre">k</span></code> vecinos, desde el 1 hasta el 20, y luego guardamos en una lista los scores conseguidos por accuracy en el entrenamiento y la validación, y los scores de precision, recall y f1-score.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Seleccionar variables numéricas reales</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># tags: [skip-execution]</span>
+<span class="c1"># Seleccionar variables numéricas reales</span>
 <span class="n">numerical_columns</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">select_dtypes</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;int64&#39;</span><span class="p">,</span> <span class="s1">&#39;float64&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">categorical_columns</span><span class="p">)</span>
-<span class="c1"># ====== DIVISIÓN INICIAL: train+val y test ======</span>
+<span class="c1"># División del dataset en conjunto de entrenamiento/validación y conjunto de test</span>
 <span class="n">X_trainval</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_trainval</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
     <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span>  <span class="n">stratify</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span>
 <span class="p">)</span>
 
-<span class="c1"># ====== VALIDACIÓN CRUZADA MANUAL EN trainval ======</span>
+<span class="c1"># Validación cruzada manual en trainval</span>
 <span class="n">resultados_k</span> <span class="o">=</span> <span class="p">[]</span>
 
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">):</span>
     <span class="n">accuracy_val_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">f1_train_list</span><span class="o">=</span><span class="p">[]</span>
     <span class="n">precision_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">recall_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">f1_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1432,7 +1433,7 @@ Name: count, dtype: int64
             <span class="n">X_trainval</span><span class="p">,</span> <span class="n">y_trainval</span><span class="p">,</span>  <span class="n">stratify</span><span class="o">=</span><span class="n">y_trainval</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span>
         <span class="p">)</span>
 
-        <span class="c1"># One-hot encoding por fold</span>
+        <span class="c1"># Codificación de variables categóricas</span>
         <span class="n">X_train_enc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">X_val_enc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">X_train_enc</span><span class="p">,</span> <span class="n">X_val_enc</span> <span class="o">=</span> <span class="n">X_train_enc</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">X_val_enc</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -1459,6 +1460,7 @@ Name: count, dtype: int64
 
         <span class="c1"># Métricas</span>
         <span class="n">accuracy_val_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">accuracy_score</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred_val</span><span class="p">))</span>
+        <span class="n">f1_train_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f1_score</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">y_pred_train</span><span class="p">))</span>
         <span class="n">precision_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred_val</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">recall_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred_val</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">f1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f1_score</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred_val</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
@@ -1466,6 +1468,7 @@ Name: count, dtype: int64
     <span class="c1"># Guardar resultados de este k</span>
     <span class="n">resultados_k</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
         <span class="s1">&#39;k&#39;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+        <span class="s1">&#39;f1_train&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">f1_train_list</span><span class="p">),</span>
         <span class="s1">&#39;Accuracy_val&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">accuracy_val_list</span><span class="p">),</span>
         <span class="s1">&#39;Precision&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">precision_list</span><span class="p">),</span>
         <span class="s1">&#39;Recall&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">recall_list</span><span class="p">),</span>
@@ -1474,86 +1477,11 @@ Name: count, dtype: int64
 
 <span class="c1"># Convertir a DataFrame</span>
 <span class="n">df_resultados_original</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">resultados_k</span><span class="p">)</span>
-<span class="n">df_resultados_original</span><span class="p">[</span><span class="s1">&#39;Observaciones&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_trainval</span><span class="p">)</span>
-<span class="n">df_resultados_original</span><span class="p">[</span><span class="s1">&#39;Dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Original&#39;</span>
 
 <span class="c1"># Mantén ambas columnas para la gráfica Train vs Val</span>
 <span class="n">df_resultados_original</span> <span class="o">=</span> <span class="n">df_resultados_original</span><span class="p">[[</span>
-    <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;Accuracy_val&#39;</span><span class="p">,</span> <span class="s1">&#39;Precision&#39;</span><span class="p">,</span> <span class="s1">&#39;Recall&#39;</span><span class="p">,</span> <span class="s1">&#39;F1-score&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Observaciones&#39;</span><span class="p">,</span> <span class="s1">&#39;Dataset&#39;</span>
+    <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;f1_train&#39;</span><span class="p">,</span><span class="s1">&#39;Accuracy_val&#39;</span><span class="p">,</span> <span class="s1">&#39;Precision&#39;</span><span class="p">,</span> <span class="s1">&#39;Recall&#39;</span><span class="p">,</span> <span class="s1">&#39;F1-score&#39;</span>
 <span class="p">]]</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">KeyboardInterrupt</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">19</span><span class="p">],</span> <span class="n">line</span> <span class="mi">45</span>
-<span class="g g-Whitespace">     </span><span class="mi">42</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train_final</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="c1"># Predicciones</span>
-<span class="ne">---&gt; </span><span class="mi">45</span> <span class="n">y_pred_val</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_val_final</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">46</span> <span class="n">y_pred_train</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_train_final</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">48</span> <span class="c1"># Métricas</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\sklearn\neighbors\_classification.py:279,</span> in <span class="ni">KNeighborsClassifier.predict</span><span class="nt">(self, X)</span>
-<span class="g g-Whitespace">    </span><span class="mi">277</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">classes_k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">classes_</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">278</span>     <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">279</span>         <span class="n">mode</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_mode</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="n">neigh_ind</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">280</span>     <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">281</span>         <span class="n">mode</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">weighted_mode</span><span class="p">(</span><span class="n">_y</span><span class="p">[</span><span class="n">neigh_ind</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="n">weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\sklearn\utils\fixes.py:102,</span> in <span class="ni">_mode</span><span class="nt">(a, axis)</span>
-<span class="g g-Whitespace">    </span><span class="mi">100</span> <span class="k">def</span><span class="w"> </span><span class="nf">_mode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">101</span>     <span class="k">if</span> <span class="n">sp_version</span> <span class="o">&gt;=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;1.9.0&quot;</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">102</span>         <span class="n">mode</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">103</span>         <span class="k">if</span> <span class="n">sp_version</span> <span class="o">&gt;=</span> <span class="n">parse_version</span><span class="p">(</span><span class="s2">&quot;1.10.999&quot;</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">104</span>             <span class="c1"># scipy.stats.mode has changed returned array shape with axis=None</span>
-<span class="g g-Whitespace">    </span><span class="mi">105</span>             <span class="c1"># and keepdims=True, see https://github.com/scipy/scipy/pull/17561</span>
-<span class="g g-Whitespace">    </span><span class="mi">106</span>             <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\scipy\stats\_axis_nan_policy.py:591,</span> in <span class="ni">_axis_nan_policy_factory.&lt;locals&gt;.axis_nan_policy_decorator.&lt;locals&gt;.axis_nan_policy_wrapper</span><span class="nt">(***failed resolving arguments***)</span>
-<span class="g g-Whitespace">    </span><span class="mi">588</span>         <span class="k">return</span> <span class="n">result_to_tuple</span><span class="p">(</span><span class="n">hypotest_fun_out</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">))</span>
-<span class="g g-Whitespace">    </span><span class="mi">590</span> <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">591</span> <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">hypotest_fun</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">592</span> <span class="n">res</span> <span class="o">=</span> <span class="n">_add_reduced_axes</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">reduced_axes</span><span class="p">,</span> <span class="n">keepdims</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">593</span> <span class="k">return</span> <span class="n">tuple_to_result</span><span class="p">(</span><span class="o">*</span><span class="n">res</span><span class="p">)</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\numpy\lib\shape_base.py:402,</span> in <span class="ni">apply_along_axis</span><span class="nt">(func1d, axis, arr, *args, **kwargs)</span>
-<span class="g g-Whitespace">    </span><span class="mi">400</span> <span class="n">buff</span><span class="p">[</span><span class="n">ind0</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span>
-<span class="g g-Whitespace">    </span><span class="mi">401</span> <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="n">inds</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">402</span>     <span class="n">buff</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">asanyarray</span><span class="p">(</span><span class="n">func1d</span><span class="p">(</span><span class="n">inarr_view</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
-<span class="g g-Whitespace">    </span><span class="mi">404</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">405</span>     <span class="c1"># wrap the array, to preserve subclasses</span>
-<span class="g g-Whitespace">    </span><span class="mi">406</span>     <span class="n">buff</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">__array_wrap__</span><span class="p">(</span><span class="n">buff</span><span class="p">)</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\scipy\stats\_axis_nan_policy.py:588,</span> in <span class="ni">_axis_nan_policy_factory.&lt;locals&gt;.axis_nan_policy_decorator.&lt;locals&gt;.axis_nan_policy_wrapper.&lt;locals&gt;.hypotest_fun</span><span class="nt">(x)</span>
-<span class="g g-Whitespace">    </span><span class="mi">586</span> <span class="k">if</span> <span class="n">is_too_small</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">587</span>     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_out</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">588</span> <span class="k">return</span> <span class="n">result_to_tuple</span><span class="p">(</span><span class="n">hypotest_fun_out</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">))</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\scipy\stats\_stats_py.py:517,</span> in <span class="ni">mode</span><span class="nt">(a, axis, nan_policy, keepdims)</span>
-<span class="g g-Whitespace">    </span><span class="mi">514</span>     <span class="n">NaN</span> <span class="o">=</span> <span class="n">_get_nan</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">515</span>     <span class="k">return</span> <span class="n">ModeResult</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">NaN</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">NaN</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
-<span class="ne">--&gt; </span><span class="mi">517</span> <span class="n">vals</span><span class="p">,</span> <span class="n">cnts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">518</span> <span class="n">modes</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">cnts</span><span class="o">.</span><span class="n">argmax</span><span class="p">()],</span> <span class="n">cnts</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">519</span> <span class="k">return</span> <span class="n">ModeResult</span><span class="p">(</span><span class="n">modes</span><span class="p">[()],</span> <span class="n">counts</span><span class="p">[()])</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\numpy\lib\arraysetops.py:274,</span> in <span class="ni">unique</span><span class="nt">(ar, return_index, return_inverse, return_counts, axis, equal_nan)</span>
-<span class="g g-Whitespace">    </span><span class="mi">272</span> <span class="n">ar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">273</span> <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">274</span>     <span class="n">ret</span> <span class="o">=</span> <span class="n">_unique1d</span><span class="p">(</span><span class="n">ar</span><span class="p">,</span> <span class="n">return_index</span><span class="p">,</span> <span class="n">return_inverse</span><span class="p">,</span> <span class="n">return_counts</span><span class="p">,</span> 
-<span class="g g-Whitespace">    </span><span class="mi">275</span>                     <span class="n">equal_nan</span><span class="o">=</span><span class="n">equal_nan</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">276</span>     <span class="k">return</span> <span class="n">_unpack_tuple</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">278</span> <span class="c1"># axis was specified and not None</span>
-
-<span class="nn">File ~\miniconda3\envs\ml_venv\lib\site-packages\numpy\lib\arraysetops.py:352,</span> in <span class="ni">_unique1d</span><span class="nt">(ar, return_index, return_inverse, return_counts, equal_nan)</span>
-<span class="g g-Whitespace">    </span><span class="mi">350</span>     <span class="n">mask</span><span class="p">[</span><span class="n">aux_firstnan</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="g g-Whitespace">    </span><span class="mi">351</span> <span class="k">else</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">352</span>     <span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">aux</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-<span class="g g-Whitespace">    </span><span class="mi">354</span> <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="n">aux</span><span class="p">[</span><span class="n">mask</span><span class="p">],)</span>
-<span class="g g-Whitespace">    </span><span class="mi">355</span> <span class="k">if</span> <span class="n">return_index</span><span class="p">:</span>
-
-<span class="ne">KeyboardInterrupt</span>: 
 </pre></div>
 </div>
 </div>
@@ -1567,46 +1495,49 @@ Name: count, dtype: int64
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> Métricas promedio por valor de k (5-fold CV manual):
-     k  Accuracy_val  Precision  Recall  F1-score  Observaciones   Dataset
-0    1        0.7930     0.7060  0.6120    0.6553           3318  Original
-1    2        0.8118     0.8975  0.4682    0.6150           3318  Original
-2    3        0.8227     0.8145  0.5813    0.6780           3318  Original
-3    4        0.8159     0.8791  0.4959    0.6339           3318  Original
-4    5        0.8234     0.8284  0.5693    0.6743           3318  Original
-5    6        0.8154     0.8776  0.4959    0.6333           3318  Original
-6    7        0.8229     0.8461  0.5498    0.6662           3318  Original
-7    8        0.8212     0.8900  0.5071    0.6457           3318  Original
-8    9        0.8227     0.8615  0.5348    0.6596           3318  Original
-9   10        0.8210     0.8928  0.5041    0.6441           3318  Original
-10  11        0.8234     0.8746  0.5266    0.6571           3318  Original
-11  12        0.8224     0.9036  0.5019    0.6449           3318  Original
-12  13        0.8267     0.8956  0.5228    0.6598           3318  Original
-13  14        0.8224     0.9122  0.4959    0.6420           3318  Original
-14  15        0.8251     0.8948  0.5169    0.6551           3318  Original
-15  16        0.8198     0.9108  0.4876    0.6347           3318  Original
-16  17        0.8236     0.9037  0.5056    0.6481           3318  Original
-17  18        0.8169     0.9164  0.4742    0.6245           3318  Original
-18  19        0.8205     0.9122  0.4891    0.6364           3318  Original
-19  20        0.8169     0.9226  0.4704    0.6228           3318  Original
+     k  f1_train  Accuracy_val  Precision  Recall  F1-score
+0    1    1.0000        0.7930     0.7060  0.6120    0.6553
+1    2    0.7620        0.8118     0.8975  0.4682    0.6150
+2    3    0.8113        0.8227     0.8145  0.5813    0.6780
+3    4    0.7371        0.8159     0.8791  0.4959    0.6339
+4    5    0.7691        0.8234     0.8284  0.5693    0.6743
+5    6    0.7100        0.8154     0.8776  0.4959    0.6333
+6    7    0.7362        0.8229     0.8461  0.5498    0.6662
+7    8    0.6928        0.8212     0.8900  0.5071    0.6457
+8    9    0.7170        0.8227     0.8615  0.5348    0.6596
+9   10    0.6907        0.8210     0.8928  0.5041    0.6441
+10  11    0.7138        0.8234     0.8746  0.5266    0.6571
+11  12    0.6820        0.8224     0.9036  0.5019    0.6449
+12  13    0.7022        0.8267     0.8956  0.5228    0.6598
+13  14    0.6786        0.8224     0.9122  0.4959    0.6420
+14  15    0.6929        0.8251     0.8948  0.5169    0.6551
+15  16    0.6750        0.8198     0.9108  0.4876    0.6347
+16  17    0.6865        0.8236     0.9037  0.5056    0.6481
+17  18    0.6672        0.8169     0.9164  0.4742    0.6245
+18  19    0.6792        0.8205     0.9122  0.4891    0.6364
+19  20    0.6634        0.8169     0.9226  0.4704    0.6228
 </pre></div>
 </div>
 </div>
 </div>
 <p>Cabe aclarar una cosa muy importante que no ha sido mencionada a lo largo de este proyecto: la estandarización y codificación de las variables númericas y categóricas respectivamente.</p>
 <p>Decidimos realizar estos procesos luego de dividir el conjunto de entrenamiento por segunda ocasión ya que esto evita el <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">leakage</span></code>, por lo que el preprocesamiento de datos se realizará luego de cada división de los mismos en cada entrenamiento de un modelo.</p>
-<p>Ahora, luego de conseguir los scores para cada k, veamos gráficamente que tal se comportan.</p>
+<p>Ahora, luego de conseguir los scores para cada <code class="docutils literal notranslate"><span class="pre">k</span></code>, veamos gráficamente que tal se comportan.
+Para escoger al mejor <code class="docutils literal notranslate"><span class="pre">k</span></code>, decidimos usar la métrica <code class="docutils literal notranslate"><span class="pre">f1-score</span></code>, ya que nos parece mejor para definir el objetivo del modelo el cual es ver los alumnos que abandonaron la universidad, ya que tanto un falso positivo como un falso negativo nos parece igual de grave para la generalización del modelo. Por lo tanto, comparamos qué tan bien predice en el conjunto de entrenamiento y qué tan bien generaliza nuevos datos.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Asegura orden por k</span>
 <span class="n">orig</span> <span class="o">=</span> <span class="n">df_resultados_original</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">orig</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s1">&#39;Accuracy_val&#39;</span><span class="p">],</span>  <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Accuracy (Val)&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">orig</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s1">&#39;Precision&#39;</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Precision&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">orig</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s1">&#39;Recall&#39;</span><span class="p">],</span>    <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Recall&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">orig</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s1">&#39;F1-score&#39;</span><span class="p">],</span>  <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;F1-score&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">orig</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s1">&#39;f1_train&#39;</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;f1-score (Train)&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">orig</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">orig</span><span class="p">[</span><span class="s1">&#39;F1-score&#39;</span><span class="p">],</span>  <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;f1-score&#39;</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Métricas de Validación Cruzada por valor de k — Dataset Original&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Métricas de Validación Cruzada por valor de k&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Número de vecinos (k)&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Valor de la métrica&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">))</span>
@@ -1619,21 +1550,22 @@ Name: count, dtype: int64
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="_images/ffe6b25b4d77400d96a6da6735e902057e74868dec7a672fecce78d4c861c5f5.png" src="_images/ffe6b25b4d77400d96a6da6735e902057e74868dec7a672fecce78d4c861c5f5.png" />
+<img alt="_images/e0393f6f473932a694805985cd1c452dece6d0f595bf701372ba732429b648c0.png" src="_images/e0393f6f473932a694805985cd1c452dece6d0f595bf701372ba732429b648c0.png" />
 </div>
 </div>
-<p>Gracias a este gráfico nos podemos dar cuenta de como va cambiando el rendimiento del modelo a medida que cambiamos la k. Para escoger al mejor k, decidimos usar la métrica f1-score, ya que nos parece mejor para definir el objetivo del modelo el cual es ver los alumnos que abandonaron la universidad, ya que tanto un falso positivo como un falso negativo nos parece igual de grave para la generalización del modelo.</p>
+<p>Gracias a este gráfico nos podemos dar cuenta de como va cambiando el rendimiento del modelo a medida que cambiamos la <code class="docutils literal notranslate"><span class="pre">k</span></code>. Para la métrica <code class="docutils literal notranslate"><span class="pre">accuracy</span></code>, vemos que no hay cambios significativos a medida que cambiamos el número de vecinos, mientras que para la métrica <code class="docutils literal notranslate"><span class="pre">precision</span></code>, su score aumenta a medida que se considera una mayor cantidad de vecinos.
+En este caso, el mejor valor de <code class="docutils literal notranslate"><span class="pre">f1-score</span></code> se consiguió con un <code class="docutils literal notranslate"><span class="pre">k=3</span></code>.</p>
 </section>
 <section id="entrenamiento-del-modelo-con-el-mejor-k-matriz-de-confusion-y-metricas-precision-recall-y-f1-score">
 <h4>2.1.2 Entrenamiento del modelo con el mejor K, matriz de confusión y métricas precision, recall y f1-score<a class="headerlink" href="#entrenamiento-del-modelo-con-el-mejor-k-matriz-de-confusion-y-metricas-precision-recall-y-f1-score" title="Link to this heading">#</a></h4>
-<p>Así pues, y usando el conjunto de test anteriormente establecido para evaluar mejor el modelo, entrenamos el modelo con el mejor k, y el conjunto de entrenamiento que se estableció en primer lugar.</p>
+<p>Así pues, y usando el conjunto de test anteriormente establecido para evaluar mejor el modelo, entrenamos el modelo con el mejor <code class="docutils literal notranslate"><span class="pre">k</span></code>, y el conjunto de entrenamiento que se estableció en primer lugar.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Seleccionar el mejor k según F1-score</span>
 <span class="n">best_k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">df_resultados_original</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_resultados_original</span><span class="p">[</span><span class="s1">&#39;F1-score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">(),</span> <span class="s1">&#39;k&#39;</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Mejor k según F1-score: </span><span class="si">{</span><span class="n">best_k</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="c1"># Codificación one-hot</span>
+<span class="c1"># Codificación de las variables categóricas</span>
 <span class="n">X_trainval_enc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_trainval</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">X_test_enc</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">X_trainval_enc</span><span class="p">,</span> <span class="n">X_test_enc</span> <span class="o">=</span> <span class="n">X_trainval_enc</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">X_test_enc</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -1699,14 +1631,14 @@ weighted avg       0.84      0.84      0.84      1106
 </div>
 </div>
 </div>
-<p>Gracias a la matriz de confusión, nos damos cuenta de que tan solo se obtuvieron 44 falsos positivos y 131 falsos negativos.</p>
-<p>Además, el score dado por la métrica <code class="docutils literal notranslate"><span class="pre">f1-score</span></code> es de <code class="docutils literal notranslate"><span class="pre">0.72</span></code>, el cual es un puntaje bastante bueno, considerando 3 vecinos mas cercanos.</p>
+<p>Gracias a la matriz de confusión, nos damos cuenta de que se obtuvieron 44 falsos positivos y 131 falsos negativos.</p>
+<p>Además, el score dado por la métrica <code class="docutils literal notranslate"><span class="pre">f1-score</span></code> es de <code class="docutils literal notranslate"><span class="pre">0.72</span></code>, el cual es un puntaje bueno, considerando 3 vecinos mas cercanos.</p>
 </section>
 <section id="curva-roc-y-auc">
 <h4>2.1.3 Curva ROC y AUC<a class="headerlink" href="#curva-roc-y-auc" title="Link to this heading">#</a></h4>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># === Curva ROC y AUC ===</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Curva ROC y AUC </span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">roc_auc_score</span>
 
 <span class="c1"># Obtener probabilidades de clase positiva (abandona = 1)</span>
@@ -1741,7 +1673,7 @@ weighted avg       0.84      0.84      0.84      1106
 </div>
 </div>
 </div>
-<p>Se ve una ROC claramente por encima de la diagonal, con AUC ≈ 0.843. Eso significa que el modelo de clasificación para “abandona / no abandona” distingue bien entre ambos: si tomas un alumno que abandona y uno que no, el modelo tiene ~84% de probabilidad de asignar mayor score al que abandona.</p>
+<p>Se ve una curva ROC claramente por encima de la diagonal, con AUC ≈ 0.843. Eso significa que el modelo de clasificación para “abandona / no abandona” distingue bien entre ambos: si tomas un alumno que abandona y uno que no, el modelo tiene ~84% de probabilidad de asignar mayor score al que abandona.</p>
 </section>
 </section>
 <section id="modelo-de-regresion">
@@ -1767,7 +1699,7 @@ weighted avg       0.84      0.84      0.84      1106
 </div>
 </div>
 </div>
-<p>Ahora viene un paso muy importante, dado que queremos predecir la nota acumulada del estudiante en los dos primeros semestres, no podemos usar los datos que se encuentran en las variables correspondientes al segundo semestre, ya que existiría una fuga de datos, ya que si no se hace esto, el modelo ya tendría la información necesaria para calcular el promedio y el modelo sería perfecto, lo cual sería engañoso.</p>
+<p>Ahora viene un paso muy importante, dado que queremos predecir la nota acumulada del estudiante en los dos primeros semestres, no podemos usar los datos que se encuentran en las variables correspondientes al segundo semestre, debido a que existiría una fuga de datos, ya que si no se hace esto, el modelo ya tendría la información necesaria para calcular el promedio y el modelo sería perfecto, lo cual sería engañoso.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cols_to_exclude</span> <span class="o">=</span> <span class="p">[</span>
@@ -1801,7 +1733,7 @@ weighted avg       0.84      0.84      0.84      1106
 <p>Y comenzamos a escoger el mejor K.</p>
 <section id="id1">
 <h4>2.2.1 Búsqueda del mejor K<a class="headerlink" href="#id1" title="Link to this heading">#</a></h4>
-<p>En esta sección repetimos exactamente los mismos pasos que en el modelo anterior, en lo que a división de datos y procesamiento de datos se refiere.</p>
+<p>En esta sección repetimos exactamente los mismos pasos que en el modelo anterior, en lo que a división de datos y preprocesamiento de datos se refiere.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># División de los datos apartando el conjunto de test para la evaluación final del modelo</span>
@@ -1815,12 +1747,12 @@ weighted avg       0.84      0.84      0.84      1106
 <span class="c1"># 2) Validación cruzada manual en trainval</span>
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">k_values</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-        <span class="c1"># División interna: train y val (80/20) aleatorio</span>
+        
         <span class="n">X_tr</span><span class="p">,</span> <span class="n">X_val</span><span class="p">,</span> <span class="n">y_tr</span><span class="p">,</span> <span class="n">y_val</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span>
             <span class="n">X_trainval</span><span class="p">,</span> <span class="n">y_trainval</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">seed</span>
         <span class="p">)</span>
 
-        <span class="c1"># One-Hot encoding</span>
+        <span class="c1"># Clasificación de variables categóricas</span>
         <span class="n">X_tr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_tr</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">X_val</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">X_tr</span><span class="p">,</span> <span class="n">X_val</span> <span class="o">=</span> <span class="n">X_tr</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -1839,10 +1771,10 @@ weighted avg       0.84      0.84      0.84      1106
         <span class="n">y_pred</span> <span class="o">=</span> <span class="n">knn</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Xva</span><span class="p">)</span>
 
         <span class="c1"># Métricas del fold</span>
-        <span class="n">mse</span>   <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
-        <span class="n">rmse</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
-        <span class="n">mae</span>   <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
-        <span class="n">r2</span>    <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+        <span class="n">rmse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
+        <span class="n">mae</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="n">y_val</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
 
         <span class="n">cv_results</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;RMSE&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rmse</span><span class="p">)</span>
         <span class="n">cv_results</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s2">&quot;MAE&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mae</span><span class="p">)</span>
@@ -1902,42 +1834,43 @@ weighted avg       0.84      0.84      0.84      1106
 <li><p><strong>Métricas en TEST</strong></p>
 <ul>
 <li><p><strong>RMSE</strong>: raíz del error cuadrático medio. <strong>Importancia:</strong> penaliza más los errores grandes; útil como criterio principal de selección porque refleja desviaciones altas en las predicciones, en las <strong>mismas unidades</strong> del objetivo.</p></li>
-<li><p><strong>MAE</strong>: error absoluto medio. <strong>Importancia:</strong> fácil de interpretar como “error promedio esperado”; menos sensible a valores atípicos que el MSE/RMSE.</p></li>
+<li><p><strong>MAE</strong>: error absoluto medio. <strong>Importancia:</strong> fácil de interpretar como “error promedio esperado”; menos sensible a valores atípicos que el RMSE.</p></li>
 <li><p><strong>R²</strong>: coeficiente de determinación. <strong>Importancia:</strong> indica la <strong>proporción de varianza explicada</strong> por el modelo (1 = ajuste perfecto); útil para comparar especificaciones del modelo en el mismo dataset.</p></li>
 <li><p>Estas son las metricas solicitadas para el proyecto</p></li>
 </ul>
 </li>
 </ul>
-<p>Usamos el RMSE porque no solo mide el error promedio, sino que penaliza más los errores grandes, lo cual es importante ya que queremos evitar que el modelo cometa predicciones muy alejadas del valor real.</p>
+<p>En este caso podemos ver que para la métrica <code class="docutils literal notranslate"><span class="pre">RMSE</span></code>, no cambia demasiado el score a partir de que se consideran 4 vecinos más cercanos.</p>
+<p>Usamos el <code class="docutils literal notranslate"><span class="pre">RMSE</span></code> porque no solo mide el error promedio, sino que penaliza más los errores grandes, lo cual es importante ya que queremos evitar que el modelo cometa predicciones muy alejadas del valor real.</p>
 </section>
 <section id="entrenamiento-del-modelo-con-el-mejor-k">
 <h4>2.2.2 Entrenamiento del modelo con el mejor k<a class="headerlink" href="#entrenamiento-del-modelo-con-el-mejor-k" title="Link to this heading">#</a></h4>
 <p>Ahora, con el <code class="docutils literal notranslate"><span class="pre">k</span></code> encontrado, construimos el modelo.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># --- One-Hot Encoding en trainval y test</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Codificación de las variables categóricas</span>
 <span class="n">X_trainval_ohe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_trainval</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">X_test_ohe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">categorical_columns</span><span class="p">,</span> <span class="n">drop_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">X_test_ohe</span> <span class="o">=</span> <span class="n">X_test_ohe</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">X_trainval_ohe</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="c1"># --- Escalado de numéricas (ajustado SOLO en trainval)</span>
+<span class="c1"># Escalado de numéricas </span>
 <span class="n">cols_to_scale_final</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">numeric_columns_pre_ohe</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_trainval_ohe</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
 <span class="n">scaler_final</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span>
 <span class="n">X_trainval_ohe</span><span class="p">[</span><span class="n">cols_to_scale_final</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaler_final</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_trainval_ohe</span><span class="p">[</span><span class="n">cols_to_scale_final</span><span class="p">])</span>
 <span class="n">X_test_ohe</span><span class="p">[</span><span class="n">cols_to_scale_final</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaler_final</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_test_ohe</span><span class="p">[</span><span class="n">cols_to_scale_final</span><span class="p">])</span>
 
-<span class="c1"># --- Entrenar modelo final y predecir en test</span>
+<span class="c1"># Entrenar modelo final y predecir en test</span>
 <span class="n">knn_final</span> <span class="o">=</span> <span class="n">KNeighborsRegressor</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="n">best_k</span><span class="p">)</span>
 <span class="n">knn_final</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_trainval_ohe</span><span class="p">,</span> <span class="n">y_trainval</span><span class="p">)</span>
 <span class="n">y_pred_test</span> <span class="o">=</span> <span class="n">knn_final</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test_ohe</span><span class="p">)</span>
 
-<span class="c1"># --- Métricas en TEST </span>
+<span class="c1"># Métricas en TEST </span>
 <span class="n">mse_test</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred_test</span><span class="p">)</span>
 <span class="n">rmse_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse_test</span><span class="p">)</span>
 <span class="n">mae_test</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred_test</span><span class="p">)</span>
 <span class="n">r2_test</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred_test</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">===== Métricas en TEST =====&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Métricas en el test &quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RMSE:    </span><span class="si">{</span><span class="n">rmse_test</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MAE:     </span><span class="si">{</span><span class="n">mae_test</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;R²:      </span><span class="si">{</span><span class="n">r2_test</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -1945,7 +1878,7 @@ weighted avg       0.84      0.84      0.84      1106
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>===== Métricas en TEST =====
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Métricas en el test 
 RMSE:    1.7160
 MAE:     1.0452
 R²:      0.8722
@@ -2017,7 +1950,7 @@ La mayor parte de las observaciones tiene <strong>errores pequeños</strong> y u
 <h2>3. Conclusiones<a class="headerlink" href="#conclusiones" title="Link to this heading">#</a></h2>
 <p>Aunque en lo personal pensamos que es un poco díficil comparar ambos modelos ya que no son del mismo tipo, ambos nos ofrecen soluciones distintas al mismo problema, ya que si bien el de clasificación es quien nos dice si un estudiante abandona o no, con el de regresión nos podemos dar una idea de esto gracias a la nota que logró dicho estudiante.</p>
 <p>En el caso del modelo de clasificación el valor de <code class="docutils literal notranslate"><span class="pre">k</span></code> que mejor resultado dió fue de 3, considerando la métrica f1-score, mientras que en el de regresión fue de 8 considerando la métrica RMSE.</p>
-<p>Por último, una reflexión que podemos obtener sobre el modelo K-nn al hacer este proyecto, es que, si bien una de sus ventajas es que es el más simple de entender, ya que se basa netamente en qué tan alejado estan los registros para predecir, sentimos que podría tener limitaciones en el mundo real, ya que por ejemplo, al basarse en distancias, siempre tenemos que estandarizar y codificar variables despues de cada split para evitar el data leakage, lo cual conlleva a un costo computacional alto.</p>
+<p>Por último, una reflexión que podemos obtener sobre el modelo K-nn al hacer este proyecto, es que, si bien una de sus ventajas es que es el más simple de entender, ya que se basa netamente en qué tan alejado estan los registros para predecir, sentimos que podría tener limitaciones en el mundo real, ya que por ejemplo, al basarse en distancias, siempre tenemos que estandarizar y codificar variables despues de cada split para evitar el data leakage, lo cual conlleva a un costo computacional alto, dependiendo claro del tamaño del dataset con el que se cuente.</p>
 </section>
 </section>
 
@@ -2057,7 +1990,7 @@ La mayor parte de las observaciones tiene <strong>errores pequeños</strong> y u
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Welcome to your Jupyter Book</p>
+        <p class="prev-next-title">Miniproyecto #1</p>
       </div>
     </a>
 </div>
@@ -2095,7 +2028,7 @@ La mayor parte de las observaciones tiene <strong>errores pequeños</strong> y u
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modelo-k-nn">2. Modelo K-nn</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modelo-de-clasificacion-binaria">2.1 Modelo de clasificación binaria</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#busqueda-del-mejor-k">2.1.1 Búsqueda del mejor K</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#busqueda-del-mejor-k">2.1.1 Búsqueda del mejor <code class="docutils literal notranslate"><span class="pre">K</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#entrenamiento-del-modelo-con-el-mejor-k-matriz-de-confusion-y-metricas-precision-recall-y-f1-score">2.1.2 Entrenamiento del modelo con el mejor K, matriz de confusión y métricas precision, recall y f1-score</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#curva-roc-y-auc">2.1.3 Curva ROC y AUC</a></li>
 </ul>
